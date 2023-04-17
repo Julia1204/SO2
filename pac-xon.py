@@ -1,4 +1,7 @@
+import copy
+
 import pygame
+from board import board
 
 pygame.init()
 
@@ -20,14 +23,13 @@ player_x = 0.5 * width
 player_y = 100
 direction = 0
 counter = 0
+board = copy.deepcopy(board)
 
 
 def draw_board():
-    for i in range(x_tiles):
-        for j in range(y_tiles):
-            if i == 0 or i == x_tiles - 1:
-                pygame.draw.rect(screen, color, pygame.Rect(i * width + 0.5 * width, j * height + 100, width - 1, height - 1))
-            elif j == 0 or j == y_tiles - 1:
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+            if board[i][j] == 1:
                 pygame.draw.rect(screen, color, pygame.Rect(i * width + 0.5 * width, j * height + 100, width - 1, height - 1))
 
 
@@ -57,6 +59,18 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                direction = 0
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                direction = 1
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                direction = 2
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_DOWN:
+                direction = 3
 
     pygame.display.flip()
 
