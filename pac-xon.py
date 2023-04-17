@@ -24,6 +24,7 @@ player_y = 100
 direction = 0
 counter = 0
 board = copy.deepcopy(board)
+player_speed = 2
 
 
 def draw_board():
@@ -44,6 +45,19 @@ def draw_player():
         screen.blit(pygame.transform.rotate(player_images[counter //5], -90), (player_x, player_y))
 
 
+def move_player(playerx, playery):
+    if direction == 0:
+        playerx += width
+    if direction == 1:
+        playerx -= width
+    if direction == 2:
+        playery -= height
+    if direction == 3:
+        playery += height
+
+    return playerx, playery
+
+
 run = True
 while run:
     timer.tick(fps)
@@ -62,15 +76,19 @@ while run:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT:
                 direction = 0
+                player_x, player_y = move_player(player_x, player_y)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 direction = 1
+                player_x, player_y = move_player(player_x, player_y)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 direction = 2
+                player_x, player_y = move_player(player_x, player_y)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_DOWN:
                 direction = 3
+                player_x, player_y = move_player(player_x, player_y)
 
     pygame.display.flip()
 
