@@ -100,7 +100,7 @@ def draw_pink(amount):
 
 def move_pink():
     for i in range(pink_ghost_amount):
-        if pink_ghost_direction[i] == 0 and board[pink_ghost_x[i]+1][pink_ghost_y[i]-1] == 0:
+        if pink_ghost_direction[i] == 0 and board[pink_ghost_x[i]+1][pink_ghost_y[i]-1] != 1:
             board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
             board[pink_ghost_x[i]+1][pink_ghost_y[i]-1] = -1
             pink_ghost_x[i] += 1
@@ -109,7 +109,7 @@ def move_pink():
             if board[pink_ghost_x[i]][pink_ghost_y[i]-1] == 1: pink_ghost_direction[i] = 1
             elif board[pink_ghost_x[i] + 1][pink_ghost_y[i]] == 1: pink_ghost_direction[i] = 3
 
-        if pink_ghost_direction[i] == 1 and board[pink_ghost_x[i]+1][pink_ghost_y[i]+1] == 0:
+        if pink_ghost_direction[i] == 1 and board[pink_ghost_x[i]+1][pink_ghost_y[i]+1] != 1:
             board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
             board[pink_ghost_x[i]+1][pink_ghost_y[i]+1] = -1
             pink_ghost_x[i] += 1
@@ -118,7 +118,7 @@ def move_pink():
             if board[pink_ghost_x[i]][pink_ghost_y[i]+1] == 1: pink_ghost_direction[i] = 0
             elif board[pink_ghost_x[i] + 1][pink_ghost_y[i]] == 1: pink_ghost_direction[i] = 2
 
-        if pink_ghost_direction[i] == 2 and board[pink_ghost_x[i]-1][pink_ghost_y[i]+1] == 0:
+        if pink_ghost_direction[i] == 2 and board[pink_ghost_x[i]-1][pink_ghost_y[i]+1] != 1:
             board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
             board[pink_ghost_x[i]-1][pink_ghost_y[i]+1] = -1
             pink_ghost_x[i] -= 1
@@ -127,7 +127,7 @@ def move_pink():
             if board[pink_ghost_x[i]][pink_ghost_y[i]+1] == 1: pink_ghost_direction[i] = 3
             elif board[pink_ghost_x[i] - 1][pink_ghost_y[i]] == 1: pink_ghost_direction[i] = 1
 
-        if pink_ghost_direction[i] == 3 and board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] == 0:
+        if pink_ghost_direction[i] == 3 and board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] != 1:
             board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
             board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] = -1
             pink_ghost_x[i] -= 1
