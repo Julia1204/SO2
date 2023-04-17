@@ -32,6 +32,8 @@ def draw_board():
         for j in range(len(board[i])):
             if board[i][j] == 1:
                 pygame.draw.rect(screen, color, pygame.Rect(i * width + 0.5 * width, j * height + 100, width - 1, height - 1))
+            if board[i][j] == 2:
+                pygame.draw.rect(screen, color, pygame.Rect(i * width + 0.5 * width, j * height + 100, width - 1, height - 1))
 
 
 def draw_player():
@@ -57,6 +59,14 @@ def move_player(playerx, playery):
 
     return playerx, playery
 
+
+def fill_path():
+    if board[int(player_x / width)][int((player_y - 5*height) / height)] == 0:
+        board[int(player_x / width)][int((player_y - 5*height) / height)] = 2
+
+    if board[int(player_x / width)][int((player_y - 5 * height) / height)] == 1:
+        pass
+    
 
 run = True
 while run:
@@ -90,6 +100,7 @@ while run:
                 direction = 3
                 player_x, player_y = move_player(player_x, player_y)
 
+    fill_path()
     pygame.display.flip()
 
 pygame.quit()
