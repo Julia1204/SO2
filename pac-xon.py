@@ -1,7 +1,8 @@
 import copy
-
+import time
 import pygame
 from board import board
+import threading
 
 pygame.init()
 
@@ -13,7 +14,7 @@ height = ((HEIGHT - 100) // y_tiles)
 width = (WIDTH // x_tiles)
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 timer = pygame.time.Clock()
-fps = 60
+fps = 15
 font = pygame.font.Font('freesansbold.ttf', 20)
 color = (0, 0, 255)
 player_images = []
@@ -32,36 +33,54 @@ def draw_board():
         for j in range(len(board[i])):
             if board[i][j] == 1:
                 pygame.draw.rect(screen, color, pygame.Rect(i * width + 0.5 * width, j * height + 100, width - 1, height - 1))
+            if board[i][j] == 2:
+                pygame.draw.rect(screen, color, pygame.Rect(i * width + 0.5 * width, j * height + 100, width - 1, height - 1))
 
 
 def draw_player():
     if direction == 0:
-        screen.blit(player_images[counter //5], (player_x, player_y))
+        screen.blit(player_images[counter // 1], (player_x, player_y))
     elif direction == 1:
-        screen.blit(pygame.transform.flip(player_images[counter //5], True, False), (player_x, player_y))
+        screen.blit(pygame.transform.flip(player_images[counter // 1], True, False), (player_x, player_y))
     elif direction == 2:
-        screen.blit(pygame.transform.rotate(player_images[counter //5], 90), (player_x, player_y))
+        screen.blit(pygame.transform.rotate(player_images[counter // 1], 90), (player_x, player_y))
     elif direction == 3:
-        screen.blit(pygame.transform.rotate(player_images[counter //5], -90), (player_x, player_y))
+        screen.blit(pygame.transform.rotate(player_images[counter // 1], -90), (player_x, player_y))
 
 
 def move_player(playerx, playery):
     if direction == 0:
         playerx += width
+        if playerx > WIDTH - width:
+            playerx -= width
     if direction == 1:
         playerx -= width
+        if playerx < 0:
+            playerx += width
     if direction == 2:
         playery -= height
+        if playery < 100:
+            playery += height
     if direction == 3:
         playery += height
+        if playery > HEIGHT - 2*height:
+            playery -= height
 
     return playerx, playery
 
 
+def fill_path():
+    if board[int(player_x / width)][int((player_y - 5*height) / height)] == 0:
+        board[int(player_x / width)][int((player_y - 5*height) / height)] = 2
+
+    if board[int(player_x / width)][int((player_y - 5 * height) / height)] == 1:
+        pass
+    
+
 run = True
 while run:
     timer.tick(fps)
-    if counter < 19:
+    if counter < 3:
         counter += 1
     else:
         counter = 0
@@ -76,20 +95,21 @@ while run:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT:
                 direction = 0
-                player_x, player_y = move_player(player_x, player_y)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 direction = 1
-                player_x, player_y = move_player(player_x, player_y)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 direction = 2
-                player_x, player_y = move_player(player_x, player_y)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_DOWN:
                 direction = 3
-                player_x, player_y = move_player(player_x, player_y)
 
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_RIGHT] or keys[pygame.K_LEFT] or keys[pygame.K_UP] or keys[pygame.K_DOWN]:
+        player_x, player_y = move_player(player_x, player_y)
+
+    fill_path()
     pygame.display.flip()
 
 pygame.quit()
