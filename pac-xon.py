@@ -3,6 +3,9 @@ import time
 import pygame
 from board import board
 import threading
+import numpy as np
+from scipy.ndimage import label
+
 
 pygame.init()
 
@@ -71,11 +74,28 @@ def move_player(playerx, playery):
 
 def fill_path():
     if board[int(player_x / width)][int((player_y - 5*height) / height)] == 0:
-        board[int(player_x / width)][int((player_y - 5*height) / height)] = 2
+        board[int(player_x / width)][int((player_y - 5*height) / height)] = 1
+        #print("player_x:" + str (player_x / width))
+        #print("player_y:" + str (player_y / height))
 
-    if board[int(player_x / width)][int((player_y - 5 * height) / height)] == 1:
-        pass
-    
+    np_array = np.array(board)
+    np_structure = np.array([[1, 1, 1],
+                          [1, 1, 1],
+                          [1, 1, 1]])
+
+    # wyznacz etykiety obszarów
+    labeled_array, num_features = label(np_array <= 0, structure=np_structure)
+
+    for i in range(1, num_features + 1):
+        w = np.where(labeled_array == i)
+        a = list(zip(*w))
+        for (x, y) in a:
+            if board[x][y] == -1:
+                break
+        else:
+            for (x, y) in a:
+                board[x][y] = 1
+
 
 run = True
 while run:
