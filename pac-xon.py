@@ -28,9 +28,12 @@ counter = 0
 pink_ghost_amount = 2
 pink_ghost_x = []
 pink_ghost_y = []
-pink_ghost_direction = [0, 0]
+pink_ghost_direction = []
+for _ in range(pink_ghost_amount):
+    pink_ghost_direction.append(0)
 board = copy.deepcopy(board)
 pink_ghost = pygame.transform.scale(pygame.image.load(f'assets/ghost_images/pink.png'), (width, height))
+lives = 5
 
 
 def draw_board():
@@ -42,7 +45,6 @@ def draw_board():
                 pygame.draw.rect(screen, color, pygame.Rect(i * width + 0.5 * width, j * height + 100, width - 1, height - 1))
             if board[i][j] == -1:
                 screen.blit(pink_ghost, (i * width + 0.5 * width, j * height + 100))
-
 
 
 def draw_player():
@@ -98,9 +100,26 @@ def draw_pink(amount):
         pink_ghost_y.append(j)
 
 
+def lose_life():
+    for i in range(x_tiles):
+        for j in range(y_tiles):
+            if board[i][j] == 2:
+                board[i][j] = 0
+
+    global lives
+    lives = lives - 1
+
+    global player_y
+    global player_x
+    player_y = 100
+    player_x = 0.5 * width
+
+
 def move_pink():
     for i in range(pink_ghost_amount):
-        if pink_ghost_direction[i] == 0 and board[pink_ghost_x[i]+1][pink_ghost_y[i]-1] != 1:
+        if pink_ghost_direction[i] == 0 and board[pink_ghost_x[i]+1][pink_ghost_y[i]-1] == 2:
+            lose_life()
+        elif pink_ghost_direction[i] == 0 and board[pink_ghost_x[i]+1][pink_ghost_y[i]-1] != 1:
             board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
             board[pink_ghost_x[i]+1][pink_ghost_y[i]-1] = -1
             pink_ghost_x[i] += 1
@@ -109,7 +128,9 @@ def move_pink():
             if board[pink_ghost_x[i]][pink_ghost_y[i]-1] == 1: pink_ghost_direction[i] = 1
             elif board[pink_ghost_x[i] + 1][pink_ghost_y[i]] == 1: pink_ghost_direction[i] = 3
 
-        if pink_ghost_direction[i] == 1 and board[pink_ghost_x[i]+1][pink_ghost_y[i]+1] != 1:
+        if pink_ghost_direction[i] == 1 and board[pink_ghost_x[i]+1][pink_ghost_y[i]+1] == 2:
+            lose_life()
+        elif pink_ghost_direction[i] == 1 and board[pink_ghost_x[i]+1][pink_ghost_y[i]+1] != 1:
             board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
             board[pink_ghost_x[i]+1][pink_ghost_y[i]+1] = -1
             pink_ghost_x[i] += 1
@@ -118,7 +139,9 @@ def move_pink():
             if board[pink_ghost_x[i]][pink_ghost_y[i]+1] == 1: pink_ghost_direction[i] = 0
             elif board[pink_ghost_x[i] + 1][pink_ghost_y[i]] == 1: pink_ghost_direction[i] = 2
 
-        if pink_ghost_direction[i] == 2 and board[pink_ghost_x[i]-1][pink_ghost_y[i]+1] != 1:
+        if pink_ghost_direction[i] == 2 and board[pink_ghost_x[i]-1][pink_ghost_y[i]+1] == 2:
+            lose_life()
+        elif pink_ghost_direction[i] == 2 and board[pink_ghost_x[i]-1][pink_ghost_y[i]+1] != 1:
             board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
             board[pink_ghost_x[i]-1][pink_ghost_y[i]+1] = -1
             pink_ghost_x[i] -= 1
@@ -127,7 +150,9 @@ def move_pink():
             if board[pink_ghost_x[i]][pink_ghost_y[i]+1] == 1: pink_ghost_direction[i] = 3
             elif board[pink_ghost_x[i] - 1][pink_ghost_y[i]] == 1: pink_ghost_direction[i] = 1
 
-        if pink_ghost_direction[i] == 3 and board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] != 1:
+        if pink_ghost_direction[i] == 3 and board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] == 2:
+            lose_life()
+        elif pink_ghost_direction[i] == 3 and board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] != 1:
             board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
             board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] = -1
             pink_ghost_x[i] -= 1
