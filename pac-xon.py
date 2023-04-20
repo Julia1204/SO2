@@ -2,7 +2,10 @@ import copy
 import time
 import pygame
 from board import board
-import threading
+import threadin
+import random
+import numpy as np
+from scipy.ndimage import label
 
 pygame.init()
 
@@ -24,8 +27,15 @@ player_x = 0.5 * width
 player_y = 100
 direction = 0
 counter = 0
+pink_ghost_amount = 2
+pink_ghost_x = []
+pink_ghost_y = []
+pink_ghost_direction = []
+for _ in range(pink_ghost_amount):
+    pink_ghost_direction.append(0)
 board = copy.deepcopy(board)
-player_speed = 2
+pink_ghost = pygame.transform.scale(pygame.image.load(f'assets/ghost_images/pink.png'), (width, height))
+lives = 5
 
 
 def draw_board():
@@ -35,6 +45,8 @@ def draw_board():
                 pygame.draw.rect(screen, color, pygame.Rect(i * width + 0.5 * width, j * height + 100, width - 1, height - 1))
             if board[i][j] == 2:
                 pygame.draw.rect(screen, color, pygame.Rect(i * width + 0.5 * width, j * height + 100, width - 1, height - 1))
+            if board[i][j] == -1:
+                screen.blit(pink_ghost, (i * width + 0.5 * width, j * height + 100))
 
 
 def draw_player():
@@ -71,13 +83,108 @@ def move_player(playerx, playery):
 
 def fill_path():
     if board[int(player_x / width)][int((player_y - 5*height) / height)] == 0:
-        board[int(player_x / width)][int((player_y - 5*height) / height)] = 2
+        board[int(player_x / width)][int((player_y - 5*height) / height)] = 1
+        #print("player_x:" + str (player_x / width))
+        #print("player_y:" + str (player_y / height))
+
+    np_array = np.array(board)
+    np_structure = np.array([[1, 1, 1],
+                          [1, 1, 1],
+                          [1, 1, 1]])
+
+    # wyznacz etykiety obszarów
+    labeled_array, num_features = label(np_array <= 0, structure=np_structure)
+
+    for i in range(1, num_features + 1):
+        w = np.where(labeled_array == i)
+        a = list(zip(*w))
+        for (x, y) in a:
+            if board[x][y] == -1:
+                break
+        else:
+            for (x, y) in a:
+                board[x][y] = 1
 
     if board[int(player_x / width)][int((player_y - 5 * height) / height)] == 1:
         pass
-    
+
+
+def draw_pink(amount):
+    for x in range(amount):
+        i = 0
+        j = 0
+        while board[i][j] != 0:
+            i = random.randint(0, 43)
+            j = random.randint(0, 28)
+
+        board[i][j] = -1
+        pink_ghost_x.append(i)
+        pink_ghost_y.append(j)
+
+
+def lose_life():
+    for i in range(x_tiles):
+        for j in range(y_tiles):
+            if board[i][j] == 2:
+                board[i][j] = 0
+
+    global lives
+    lives = lives - 1
+
+    global player_y
+    global player_x
+    player_y = 100
+    player_x = 0.5 * width
+
+
+def move_pink():
+    for i in range(pink_ghost_amount):
+        if pink_ghost_direction[i] == 0 and board[pink_ghost_x[i]+1][pink_ghost_y[i]-1] == 2:
+            lose_life()
+        elif pink_ghost_direction[i] == 0 and board[pink_ghost_x[i]+1][pink_ghost_y[i]-1] != 1:
+            board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
+            board[pink_ghost_x[i]+1][pink_ghost_y[i]-1] = -1
+            pink_ghost_x[i] += 1
+            pink_ghost_y[i] -= 1
+        elif pink_ghost_direction[i] == 0 and board[pink_ghost_x[i]+1][pink_ghost_y[i]-1] == 1:
+            if board[pink_ghost_x[i]][pink_ghost_y[i]-1] == 1: pink_ghost_direction[i] = 1
+            elif board[pink_ghost_x[i] + 1][pink_ghost_y[i]] == 1: pink_ghost_direction[i] = 3
+
+        if pink_ghost_direction[i] == 1 and board[pink_ghost_x[i]+1][pink_ghost_y[i]+1] == 2:
+            lose_life()
+        elif pink_ghost_direction[i] == 1 and board[pink_ghost_x[i]+1][pink_ghost_y[i]+1] != 1:
+            board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
+            board[pink_ghost_x[i]+1][pink_ghost_y[i]+1] = -1
+            pink_ghost_x[i] += 1
+            pink_ghost_y[i] += 1
+        elif pink_ghost_direction[i] == 1 and board[pink_ghost_x[i]+1][pink_ghost_y[i]+1] == 1:
+            if board[pink_ghost_x[i]][pink_ghost_y[i]+1] == 1: pink_ghost_direction[i] = 0
+            elif board[pink_ghost_x[i] + 1][pink_ghost_y[i]] == 1: pink_ghost_direction[i] = 2
+
+        if pink_ghost_direction[i] == 2 and board[pink_ghost_x[i]-1][pink_ghost_y[i]+1] == 2:
+            lose_life()
+        elif pink_ghost_direction[i] == 2 and board[pink_ghost_x[i]-1][pink_ghost_y[i]+1] != 1:
+            board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
+            board[pink_ghost_x[i]-1][pink_ghost_y[i]+1] = -1
+            pink_ghost_x[i] -= 1
+            pink_ghost_y[i] += 1
+        elif pink_ghost_direction[i] == 2 and board[pink_ghost_x[i]-1][pink_ghost_y[i]+1] == 1:
+            if board[pink_ghost_x[i]][pink_ghost_y[i]+1] == 1: pink_ghost_direction[i] = 3
+            elif board[pink_ghost_x[i] - 1][pink_ghost_y[i]] == 1: pink_ghost_direction[i] = 1
+
+        if pink_ghost_direction[i] == 3 and board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] == 2:
+            lose_life()
+        elif pink_ghost_direction[i] == 3 and board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] != 1:
+            board[pink_ghost_x[i]][pink_ghost_y[i]] = 0
+            board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] = -1
+            pink_ghost_x[i] -= 1
+            pink_ghost_y[i] -= 1
+        elif pink_ghost_direction[i] == 3 and board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] == 1:
+            if board[pink_ghost_x[i]][pink_ghost_y[i]-1] == 1: pink_ghost_direction[i] = 2
+            elif board[pink_ghost_x[i]-1][pink_ghost_y[i]] == 1: pink_ghost_direction[i] = 0
 
 run = True
+draw_pink(pink_ghost_amount)
 while run:
     timer.tick(fps)
     if counter < 3:
@@ -88,6 +195,7 @@ while run:
     screen.fill('black')
     draw_board()
     draw_player()
+    move_pink()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
