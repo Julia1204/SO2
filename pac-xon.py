@@ -2,7 +2,6 @@ import copy
 import time
 import pygame
 from board import board
-import threadin
 import random
 import numpy as np
 from scipy.ndimage import label
@@ -83,7 +82,7 @@ def move_player(playerx, playery):
 
 def fill_path():
     if board[int(player_x / width)][int((player_y - 5*height) / height)] == 0:
-        board[int(player_x / width)][int((player_y - 5*height) / height)] = 1
+        board[int(player_x / width)][int((player_y - 5*height) / height)] = 2
         #print("player_x:" + str (player_x / width))
         #print("player_y:" + str (player_y / height))
 
@@ -91,10 +90,7 @@ def fill_path():
     np_structure = np.array([[1, 1, 1],
                           [1, 1, 1],
                           [1, 1, 1]])
-
-    # wyznacz etykiety obszarów
     labeled_array, num_features = label(np_array <= 0, structure=np_structure)
-
     for i in range(1, num_features + 1):
         w = np.where(labeled_array == i)
         a = list(zip(*w))
@@ -104,9 +100,18 @@ def fill_path():
         else:
             for (x, y) in a:
                 board[x][y] = 1
+            two_to_one()
 
     if board[int(player_x / width)][int((player_y - 5 * height) / height)] == 1:
         pass
+
+
+
+def two_to_one():
+    for i in range(x_tiles):
+        for j in range(y_tiles):
+            if board[i][j] == 2:
+                board[i][j] = 1
 
 
 def draw_pink(amount):
@@ -182,6 +187,7 @@ def move_pink():
         elif pink_ghost_direction[i] == 3 and board[pink_ghost_x[i]-1][pink_ghost_y[i]-1] == 1:
             if board[pink_ghost_x[i]][pink_ghost_y[i]-1] == 1: pink_ghost_direction[i] = 2
             elif board[pink_ghost_x[i]-1][pink_ghost_y[i]] == 1: pink_ghost_direction[i] = 0
+
 
 run = True
 draw_pink(pink_ghost_amount)
