@@ -43,7 +43,7 @@ direction = 0
 counter = 0
 
 # Pink ghost
-pink_ghost_amount = 2
+pink_ghost_amount = 3
 pink_ghost_x = []
 pink_ghost_y = []
 pink_ghost_direction = []
@@ -52,14 +52,14 @@ for _ in range(pink_ghost_amount):
 pink_ghost = pygame.transform.scale(pygame.image.load(f'assets/ghost_images/pink.png'), (width, height))
 
 # Orange ghost
-orange_ghost_amount = 1
+orange_ghost_amount = 7
 orange_ghost_x = []
 orange_ghost_y = []
 orange_ghost_direction = []
 orange_ghost = pygame.transform.scale(pygame.image.load(f'assets/ghost_images/orange.png'), (width, height))
 
 # Red ghost
-red_ghost_amount = 3
+red_ghost_amount = 0
 red_ghost_x = []
 red_ghost_y = []
 red_ghost_direction = []
@@ -68,7 +68,7 @@ for _ in range(red_ghost_amount):
 red_ghost = pygame.transform.scale(pygame.image.load(f'assets/ghost_images/red.png'), (width, height))
 
 
-def draw_board():
+def draw_board(lock):
     for row in range(len(board)):
         for col in range(len(board[row])):
             if board[row][col] == 1:
@@ -83,6 +83,9 @@ def draw_board():
                 screen.blit(orange_ghost, (row * width + 0.5 * width, col * height + 100))
             if board[row][col] == -3:
                 screen.blit(red_ghost, (row * width + 0.5 * width, col * height + 100))
+
+    with lock:
+        eat_ghost()
 
 
 def draw_player():
@@ -243,281 +246,285 @@ def lose_life():
         game_over = True
 
 
-def move_pink():
-    for el in range(pink_ghost_amount):
-        if board[pink_ghost_x[el] + 1][pink_ghost_y[el]] == 1 and board[pink_ghost_x[el] - 1][pink_ghost_y[el]] == 1:
-            if board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] == 0 or board[pink_ghost_x[el] - 1][pink_ghost_y[el] + 1] == 0:
-                board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
-                board[pink_ghost_x[el]][pink_ghost_y[el] + 1] = -1
-                pink_ghost_y[el] += 1
-                pink_ghost_direction[el] = 1
-            else:
-                board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
-                board[pink_ghost_x[el]][pink_ghost_y[el] - 1] = -1
-                pink_ghost_y[el] -= 1
-                pink_ghost_direction[el] = 0
+def move_pink(stop):
+    if not stop:
+        for el in range(pink_ghost_amount):
+            if board[pink_ghost_x[el] + 1][pink_ghost_y[el]] == 1 and board[pink_ghost_x[el] - 1][pink_ghost_y[el]] == 1:
+                if board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] == 0 or board[pink_ghost_x[el] - 1][pink_ghost_y[el] + 1] == 0:
+                    board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
+                    board[pink_ghost_x[el]][pink_ghost_y[el] + 1] = -1
+                    pink_ghost_y[el] += 1
+                    pink_ghost_direction[el] = 1
+                else:
+                    board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
+                    board[pink_ghost_x[el]][pink_ghost_y[el] - 1] = -1
+                    pink_ghost_y[el] -= 1
+                    pink_ghost_direction[el] = 0
 
-        if board[pink_ghost_x[el]][pink_ghost_y[el] + 1] == 1 and board[pink_ghost_x[el]][pink_ghost_y[el] - 1] == 1:
-            if board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] == 0 or board[pink_ghost_x[el] + 1][pink_ghost_y[el] - 1] == 0:
+            if board[pink_ghost_x[el]][pink_ghost_y[el] + 1] == 1 and board[pink_ghost_x[el]][pink_ghost_y[el] - 1] == 1:
+                if board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] == 0 or board[pink_ghost_x[el] + 1][pink_ghost_y[el] - 1] == 0:
+                    board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
+                    board[pink_ghost_x[el] + 1][pink_ghost_y[el]] = -1
+                    pink_ghost_x[el] += 1
+                    pink_ghost_direction[el] = 0
+                else:
+                    board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
+                    board[pink_ghost_x[el] - 1][pink_ghost_y[el]] = -1
+                    pink_ghost_x[el] -= 1
+                    pink_ghost_direction[el] = 3
+
+            if pink_ghost_direction[el] == 0 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] - 1] == 2:
+                lose_life()
+            elif pink_ghost_direction[el] == 0 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] - 1] != 1:
                 board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
-                board[pink_ghost_x[el] + 1][pink_ghost_y[el]] = -1
+                board[pink_ghost_x[el] + 1][pink_ghost_y[el] - 1] = -1
                 pink_ghost_x[el] += 1
-                pink_ghost_direction[el] = 0
-            else:
+                pink_ghost_y[el] -= 1
+            elif pink_ghost_direction[el] == 0 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] - 1] == 1:
+                if board[pink_ghost_x[el]][pink_ghost_y[el] - 1] == 1:
+                    pink_ghost_direction[el] = 1
+                elif board[pink_ghost_x[el] + 1][pink_ghost_y[el]] == 1:
+                    pink_ghost_direction[el] = 3
+                else:
+                    pink_ghost_direction[el] = 2
+
+            if pink_ghost_direction[el] == 1 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] == 2:
+                lose_life()
+            elif pink_ghost_direction[el] == 1 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] != 1:
                 board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
-                board[pink_ghost_x[el] - 1][pink_ghost_y[el]] = -1
+                board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] = -1
+                pink_ghost_x[el] += 1
+                pink_ghost_y[el] += 1
+            elif pink_ghost_direction[el] == 1 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] == 1:
+                if board[pink_ghost_x[el]][pink_ghost_y[el] + 1] == 1:
+                    pink_ghost_direction[el] = 0
+                elif board[pink_ghost_x[el] + 1][pink_ghost_y[el]] == 1:
+                    pink_ghost_direction[el] = 2
+                else:
+                    pink_ghost_direction[el] = 3
+
+            if pink_ghost_direction[el] == 2 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] + 1] == 2:
+                lose_life()
+            elif pink_ghost_direction[el] == 2 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] + 1] != 1:
+                board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
+                board[pink_ghost_x[el] - 1][pink_ghost_y[el] + 1] = -1
                 pink_ghost_x[el] -= 1
-                pink_ghost_direction[el] = 3
+                pink_ghost_y[el] += 1
+            elif pink_ghost_direction[el] == 2 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] + 1] == 1:
+                if board[pink_ghost_x[el]][pink_ghost_y[el] + 1] == 1:
+                    pink_ghost_direction[el] = 3
+                elif board[pink_ghost_x[el] - 1][pink_ghost_y[el]] == 1:
+                    pink_ghost_direction[el] = 1
+                else:
+                    pink_ghost_direction[el] = 0
 
-        if pink_ghost_direction[el] == 0 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] - 1] == 2:
-            lose_life()
-        elif pink_ghost_direction[el] == 0 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] - 1] != 1:
-            board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
-            board[pink_ghost_x[el] + 1][pink_ghost_y[el] - 1] = -1
-            pink_ghost_x[el] += 1
-            pink_ghost_y[el] -= 1
-        elif pink_ghost_direction[el] == 0 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] - 1] == 1:
-            if board[pink_ghost_x[el]][pink_ghost_y[el] - 1] == 1:
-                pink_ghost_direction[el] = 1
-            elif board[pink_ghost_x[el] + 1][pink_ghost_y[el]] == 1:
-                pink_ghost_direction[el] = 3
-            else:
-                pink_ghost_direction[el] = 2
-
-        if pink_ghost_direction[el] == 1 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] == 2:
-            lose_life()
-        elif pink_ghost_direction[el] == 1 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] != 1:
-            board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
-            board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] = -1
-            pink_ghost_x[el] += 1
-            pink_ghost_y[el] += 1
-        elif pink_ghost_direction[el] == 1 and board[pink_ghost_x[el] + 1][pink_ghost_y[el] + 1] == 1:
-            if board[pink_ghost_x[el]][pink_ghost_y[el] + 1] == 1:
-                pink_ghost_direction[el] = 0
-            elif board[pink_ghost_x[el] + 1][pink_ghost_y[el]] == 1:
-                pink_ghost_direction[el] = 2
-            else:
-                pink_ghost_direction[el] = 3
-
-        if pink_ghost_direction[el] == 2 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] + 1] == 2:
-            lose_life()
-        elif pink_ghost_direction[el] == 2 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] + 1] != 1:
-            board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
-            board[pink_ghost_x[el] - 1][pink_ghost_y[el] + 1] = -1
-            pink_ghost_x[el] -= 1
-            pink_ghost_y[el] += 1
-        elif pink_ghost_direction[el] == 2 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] + 1] == 1:
-            if board[pink_ghost_x[el]][pink_ghost_y[el] + 1] == 1:
-                pink_ghost_direction[el] = 3
-            elif board[pink_ghost_x[el] - 1][pink_ghost_y[el]] == 1:
-                pink_ghost_direction[el] = 1
-            else:
-                pink_ghost_direction[el] = 0
-
-        if pink_ghost_direction[el] == 3 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] - 1] == 2:
-            lose_life()
-        elif pink_ghost_direction[el] == 3 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] - 1] != 1:
-            board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
-            board[pink_ghost_x[el] - 1][pink_ghost_y[el] - 1] = -1
-            pink_ghost_x[el] -= 1
-            pink_ghost_y[el] -= 1
-        elif pink_ghost_direction[el] == 3 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] - 1] == 1:
-            if board[pink_ghost_x[el]][pink_ghost_y[el] - 1] == 1:
-                pink_ghost_direction[el] = 2
-            elif board[pink_ghost_x[el] - 1][pink_ghost_y[el]] == 1:
-                pink_ghost_direction[el] = 0
-            else:
-                pink_ghost_direction[el] = 1
+            if pink_ghost_direction[el] == 3 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] - 1] == 2:
+                lose_life()
+            elif pink_ghost_direction[el] == 3 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] - 1] != 1:
+                board[pink_ghost_x[el]][pink_ghost_y[el]] = 0
+                board[pink_ghost_x[el] - 1][pink_ghost_y[el] - 1] = -1
+                pink_ghost_x[el] -= 1
+                pink_ghost_y[el] -= 1
+            elif pink_ghost_direction[el] == 3 and board[pink_ghost_x[el] - 1][pink_ghost_y[el] - 1] == 1:
+                if board[pink_ghost_x[el]][pink_ghost_y[el] - 1] == 1:
+                    pink_ghost_direction[el] = 2
+                elif board[pink_ghost_x[el] - 1][pink_ghost_y[el]] == 1:
+                    pink_ghost_direction[el] = 0
+                else:
+                    pink_ghost_direction[el] = 1
 
 
-def move_orange():
-    for el in range(orange_ghost_amount):
-        if orange_ghost_direction[el] == 0 and board[orange_ghost_x[el] + 1][orange_ghost_y[el]] == 2:
-            lose_life()
-        elif orange_ghost_direction[el] == 0 and board[orange_ghost_x[el] + 1][orange_ghost_y[el]] == 1:
-            orange_ghost_direction[el] = 3
-        elif orange_ghost_direction[el] == 0 and board[orange_ghost_x[el] - 1][orange_ghost_y[el] + 1] == 1 and \
-                board[orange_ghost_x[el] + 1][orange_ghost_y[el] + 1] == 1:
-            board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
-            board[orange_ghost_x[el] + 1][orange_ghost_y[el]] = -2
-            orange_ghost_x[el] += 1
-        elif orange_ghost_direction[el] == 0 and board[orange_ghost_x[el] - 1][orange_ghost_y[el] + 1] == 1 and \
-                board[orange_ghost_x[el]][orange_ghost_y[el] + 1] == 0:
-            orange_ghost_direction[el] = 1
-        elif orange_ghost_direction[el] == 0:
-            board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
-            board[orange_ghost_x[el] + 1][orange_ghost_y[el]] = -2
-            orange_ghost_x[el] += 1
+def move_orange(stop):
+    if not stop:
+        for el in range(orange_ghost_amount):
+            if orange_ghost_direction[el] == 0 and board[orange_ghost_x[el] + 1][orange_ghost_y[el]] == 2:
+                lose_life()
+            elif orange_ghost_direction[el] == 0 and board[orange_ghost_x[el] + 1][orange_ghost_y[el]] == 1:
+                orange_ghost_direction[el] = 3
+            elif orange_ghost_direction[el] == 0 and board[orange_ghost_x[el] - 1][orange_ghost_y[el] + 1] == 1 and \
+                    board[orange_ghost_x[el] + 1][orange_ghost_y[el] + 1] == 1:
+                board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
+                board[orange_ghost_x[el] + 1][orange_ghost_y[el]] = -2
+                orange_ghost_x[el] += 1
+            elif orange_ghost_direction[el] == 0 and board[orange_ghost_x[el] - 1][orange_ghost_y[el] + 1] == 1 and \
+                    board[orange_ghost_x[el]][orange_ghost_y[el] + 1] == 0:
+                orange_ghost_direction[el] = 1
+            elif orange_ghost_direction[el] == 0:
+                board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
+                board[orange_ghost_x[el] + 1][orange_ghost_y[el]] = -2
+                orange_ghost_x[el] += 1
 
-        if orange_ghost_direction[el] == 1 and board[orange_ghost_x[el]][orange_ghost_y[el] + 1] == 2:
-            lose_life()
-        elif orange_ghost_direction[el] == 1 and board[orange_ghost_x[el]][orange_ghost_y[el] + 1] == 1:
-            orange_ghost_direction[el] = 0
-        elif orange_ghost_direction[el] == 1 and board[orange_ghost_x[el] - 1][orange_ghost_y[el] - 1] == 1 and \
-                board[orange_ghost_x[el] - 1][orange_ghost_y[el] + 1] == 1:
-            board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
-            board[orange_ghost_x[el]][orange_ghost_y[el] + 1] = -2
-            orange_ghost_y[el] += 1
-        elif orange_ghost_direction[el] == 1 and board[orange_ghost_x[el] - 1][orange_ghost_y[el] - 1] == 1 and \
-                board[orange_ghost_x[el] - 1][orange_ghost_y[el]] == 0:
-            orange_ghost_direction[el] = 2
-        elif orange_ghost_direction[el] == 1:
-            board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
-            board[orange_ghost_x[el]][orange_ghost_y[el] + 1] = -2
-            orange_ghost_y[el] += 1
+            if orange_ghost_direction[el] == 1 and board[orange_ghost_x[el]][orange_ghost_y[el] + 1] == 2:
+                lose_life()
+            elif orange_ghost_direction[el] == 1 and board[orange_ghost_x[el]][orange_ghost_y[el] + 1] == 1:
+                orange_ghost_direction[el] = 0
+            elif orange_ghost_direction[el] == 1 and board[orange_ghost_x[el] - 1][orange_ghost_y[el] - 1] == 1 and \
+                    board[orange_ghost_x[el] - 1][orange_ghost_y[el] + 1] == 1:
+                board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
+                board[orange_ghost_x[el]][orange_ghost_y[el] + 1] = -2
+                orange_ghost_y[el] += 1
+            elif orange_ghost_direction[el] == 1 and board[orange_ghost_x[el] - 1][orange_ghost_y[el] - 1] == 1 and \
+                    board[orange_ghost_x[el] - 1][orange_ghost_y[el]] == 0:
+                orange_ghost_direction[el] = 2
+            elif orange_ghost_direction[el] == 1:
+                board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
+                board[orange_ghost_x[el]][orange_ghost_y[el] + 1] = -2
+                orange_ghost_y[el] += 1
 
-        if orange_ghost_direction[el] == 2 and board[orange_ghost_x[el] - 1][orange_ghost_y[el]] == 2:
-            lose_life()
-        elif orange_ghost_direction[el] == 2 and board[orange_ghost_x[el] - 1][orange_ghost_y[el]] == 1:
-            orange_ghost_direction[el] = 1
-        elif orange_ghost_direction[el] == 2 and board[orange_ghost_x[el] + 1][orange_ghost_y[el] - 1] == 1 and \
-                board[orange_ghost_x[el] - 1][orange_ghost_y[el] - 1] == 1:
-            board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
-            board[orange_ghost_x[el] - 1][orange_ghost_y[el]] = -2
-            orange_ghost_x[el] -= 1
-        elif orange_ghost_direction[el] == 2 and board[orange_ghost_x[el] + 1][orange_ghost_y[el] - 1] == 1 and \
-                board[orange_ghost_x[el]][orange_ghost_y[el] - 1] == 0:
-            orange_ghost_direction[el] = 3
-        elif orange_ghost_direction[el] == 2:
-            board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
-            board[orange_ghost_x[el] - 1][orange_ghost_y[el]] = -2
-            orange_ghost_x[el] -= 1
+            if orange_ghost_direction[el] == 2 and board[orange_ghost_x[el] - 1][orange_ghost_y[el]] == 2:
+                lose_life()
+            elif orange_ghost_direction[el] == 2 and board[orange_ghost_x[el] - 1][orange_ghost_y[el]] == 1:
+                orange_ghost_direction[el] = 1
+            elif orange_ghost_direction[el] == 2 and board[orange_ghost_x[el] + 1][orange_ghost_y[el] - 1] == 1 and \
+                    board[orange_ghost_x[el] - 1][orange_ghost_y[el] - 1] == 1:
+                board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
+                board[orange_ghost_x[el] - 1][orange_ghost_y[el]] = -2
+                orange_ghost_x[el] -= 1
+            elif orange_ghost_direction[el] == 2 and board[orange_ghost_x[el] + 1][orange_ghost_y[el] - 1] == 1 and \
+                    board[orange_ghost_x[el]][orange_ghost_y[el] - 1] == 0:
+                orange_ghost_direction[el] = 3
+            elif orange_ghost_direction[el] == 2:
+                board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
+                board[orange_ghost_x[el] - 1][orange_ghost_y[el]] = -2
+                orange_ghost_x[el] -= 1
 
-        if orange_ghost_direction[el] == 3 and board[orange_ghost_x[el]][orange_ghost_y[el] - 1] == 2:
-            lose_life()
-        elif orange_ghost_direction[el] == 3 and board[orange_ghost_x[el]][orange_ghost_y[el] - 1] == 1:
-            orange_ghost_direction[el] = 2
-        elif orange_ghost_direction[el] == 2 and board[orange_ghost_x[el] + 1][orange_ghost_y[el] - 1] == 1 and \
-                board[orange_ghost_x[el] + 1][orange_ghost_y[el] + 1] == 1:
-            board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
-            board[orange_ghost_x[el]][orange_ghost_y[el] - 1] = -2
-            orange_ghost_y[el] -= 1
-        elif orange_ghost_direction[el] == 3 and board[orange_ghost_x[el] + 1][orange_ghost_y[el] + 1] == 1 and \
-                board[orange_ghost_x[el] + 1][orange_ghost_y[el]] == 0:
-            orange_ghost_direction[el] = 0
-        elif orange_ghost_direction[el] == 3:
-            board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
-            board[orange_ghost_x[el]][orange_ghost_y[el] - 1] = -2
-            orange_ghost_y[el] -= 1
+            if orange_ghost_direction[el] == 3 and board[orange_ghost_x[el]][orange_ghost_y[el] - 1] == 2:
+                lose_life()
+            elif orange_ghost_direction[el] == 3 and board[orange_ghost_x[el]][orange_ghost_y[el] - 1] == 1:
+                orange_ghost_direction[el] = 2
+            elif orange_ghost_direction[el] == 2 and board[orange_ghost_x[el] + 1][orange_ghost_y[el] - 1] == 1 and \
+                    board[orange_ghost_x[el] + 1][orange_ghost_y[el] + 1] == 1:
+                board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
+                board[orange_ghost_x[el]][orange_ghost_y[el] - 1] = -2
+                orange_ghost_y[el] -= 1
+            elif orange_ghost_direction[el] == 3 and board[orange_ghost_x[el] + 1][orange_ghost_y[el] + 1] == 1 and \
+                    board[orange_ghost_x[el] + 1][orange_ghost_y[el]] == 0:
+                orange_ghost_direction[el] = 0
+            elif orange_ghost_direction[el] == 3:
+                board[orange_ghost_x[el]][orange_ghost_y[el]] = 0
+                board[orange_ghost_x[el]][orange_ghost_y[el] - 1] = -2
+                orange_ghost_y[el] -= 1
 
 
-def move_red():
-    for el in range(red_ghost_amount):
-        if board[red_ghost_x[el] + 1][red_ghost_y[el]] == 1 and board[red_ghost_x[el] - 1][red_ghost_y[el]] == 1:
-            if board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] == 0 or board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] == 0:
+def move_red(stop):
+    if not stop:
+        for el in range(red_ghost_amount):
+            if board[red_ghost_x[el] + 1][red_ghost_y[el]] == 1 and board[red_ghost_x[el] - 1][red_ghost_y[el]] == 1:
+                if board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] == 0 or board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] == 0:
+                    board[red_ghost_x[el]][red_ghost_y[el]] = 0
+                    board[red_ghost_x[el]][red_ghost_y[el] + 1] = -1
+                    red_ghost_y[el] += 1
+                    red_ghost_direction[el] = 1
+                else:
+                    board[red_ghost_x[el]][red_ghost_y[el]] = 0
+                    board[red_ghost_x[el]][red_ghost_y[el] - 1] = -1
+                    red_ghost_y[el] -= 1
+                    red_ghost_direction[el] = 0
+
+            if board[red_ghost_x[el]][red_ghost_y[el] + 1] == 1 and board[red_ghost_x[el]][red_ghost_y[el] - 1] == 1:
+                if board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] == 0 or board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] == 0:
+                    board[red_ghost_x[el]][red_ghost_y[el]] = 0
+                    board[red_ghost_x[el] + 1][red_ghost_y[el]] = -1
+                    red_ghost_x[el] += 1
+                    red_ghost_direction[el] = 0
+                else:
+                    board[red_ghost_x[el]][red_ghost_y[el]] = 0
+                    board[red_ghost_x[el] - 1][red_ghost_y[el]] = -1
+                    red_ghost_x[el] -= 1
+                    red_ghost_direction[el] = 3
+
+            if red_ghost_direction[el] == 0 and board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] == 2:
+                lose_life()
+            elif red_ghost_direction[el] == 0 and board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] != 1:
                 board[red_ghost_x[el]][red_ghost_y[el]] = 0
-                board[red_ghost_x[el]][red_ghost_y[el] + 1] = -1
-                red_ghost_y[el] += 1
-                red_ghost_direction[el] = 1
-            else:
-                board[red_ghost_x[el]][red_ghost_y[el]] = 0
-                board[red_ghost_x[el]][red_ghost_y[el] - 1] = -1
-                red_ghost_y[el] -= 1
-                red_ghost_direction[el] = 0
-
-        if board[red_ghost_x[el]][red_ghost_y[el] + 1] == 1 and board[red_ghost_x[el]][red_ghost_y[el] - 1] == 1:
-            if board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] == 0 or board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] == 0:
-                board[red_ghost_x[el]][red_ghost_y[el]] = 0
-                board[red_ghost_x[el] + 1][red_ghost_y[el]] = -1
+                board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] = -3
                 red_ghost_x[el] += 1
-                red_ghost_direction[el] = 0
-            else:
+                red_ghost_y[el] -= 1
+            elif red_ghost_direction[el] == 0 and board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] == 1:
+                if board[red_ghost_x[el]][red_ghost_y[el] - 1] == 1:
+                    red_ghost_direction[el] = 1
+                    if red_ghost_y[el] - 1 != 0:
+                        board[red_ghost_x[el]][red_ghost_y[el] - 1] = 0
+                elif board[red_ghost_x[el] + 1][red_ghost_y[el]] == 1:
+                    red_ghost_direction[el] = 3
+                    if red_ghost_x[el] + 1 != x_tiles - 1:
+                        board[red_ghost_x[el] + 1][red_ghost_y[el]] = 0
+                else:
+                    red_ghost_direction[el] = 2
+                    if red_ghost_y[el] - 1 != 0 and red_ghost_x[el] + 1 != x_tiles - 1:
+                        board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] = 0
+
+            if red_ghost_direction[el] == 1 and board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] == 2:
+                lose_life()
+            elif red_ghost_direction[el] == 1 and board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] != 1:
                 board[red_ghost_x[el]][red_ghost_y[el]] = 0
-                board[red_ghost_x[el] - 1][red_ghost_y[el]] = -1
+                board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] = -3
+                red_ghost_x[el] += 1
+                red_ghost_y[el] += 1
+            elif red_ghost_direction[el] == 1 and board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] == 1:
+                if board[red_ghost_x[el]][red_ghost_y[el] + 1] == 1:
+                    red_ghost_direction[el] = 0
+                    if red_ghost_y[el] + 1 != y_tiles - 1:
+                        board[red_ghost_x[el]][red_ghost_y[el] + 1] = 0
+                elif board[red_ghost_x[el] + 1][red_ghost_y[el]] == 1:
+                    red_ghost_direction[el] = 2
+                    if red_ghost_x[el] + 1 != x_tiles - 1:
+                        board[red_ghost_x[el] + 1][red_ghost_y[el]] = 0
+                else:
+                    red_ghost_direction[el] = 3
+                    if red_ghost_y[el] + 1 != y_tiles - 1 and red_ghost_x[el] + 1 != x_tiles - 1:
+                        board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] = 0
+
+            if red_ghost_direction[el] == 2 and board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] == 2:
+                lose_life()
+            elif red_ghost_direction[el] == 2 and board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] != 1:
+                board[red_ghost_x[el]][red_ghost_y[el]] = 0
+                board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] = -3
                 red_ghost_x[el] -= 1
-                red_ghost_direction[el] = 3
+                red_ghost_y[el] += 1
+            elif red_ghost_direction[el] == 2 and board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] == 1:
+                if board[red_ghost_x[el]][red_ghost_y[el] + 1] == 1:
+                    red_ghost_direction[el] = 3
+                    if red_ghost_y[el] + 1 != y_tiles - 1:
+                        board[red_ghost_x[el]][red_ghost_y[el] + 1] = 0
+                elif board[red_ghost_x[el] - 1][red_ghost_y[el]] == 1:
+                    red_ghost_direction[el] = 1
+                    if red_ghost_x[el] - 1 != 0:
+                        board[red_ghost_x[el] - 1][red_ghost_y[el]] = 0
+                else:
+                    red_ghost_direction[el] = 0
+                    if red_ghost_y[el] + 1 != y_tiles - 1 and red_ghost_x[el] - 1 != 0:
+                        board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] = 0
 
-        if red_ghost_direction[el] == 0 and board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] == 2:
-            lose_life()
-        elif red_ghost_direction[el] == 0 and board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] != 1:
-            board[red_ghost_x[el]][red_ghost_y[el]] = 0
-            board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] = -3
-            red_ghost_x[el] += 1
-            red_ghost_y[el] -= 1
-        elif red_ghost_direction[el] == 0 and board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] == 1:
-            if board[red_ghost_x[el]][red_ghost_y[el] - 1] == 1:
-                red_ghost_direction[el] = 1
-                if red_ghost_y[el] - 1 != 0:
-                    board[red_ghost_x[el]][red_ghost_y[el] - 1] = 0
-            elif board[red_ghost_x[el] + 1][red_ghost_y[el]] == 1:
-                red_ghost_direction[el] = 3
-                if red_ghost_x[el] + 1 != x_tiles - 1:
-                    board[red_ghost_x[el] + 1][red_ghost_y[el]] = 0
-            else:
-                red_ghost_direction[el] = 2
-                if red_ghost_y[el] - 1 != 0 and red_ghost_x[el] + 1 != x_tiles - 1:
-                    board[red_ghost_x[el] + 1][red_ghost_y[el] - 1] = 0
-
-        if red_ghost_direction[el] == 1 and board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] == 2:
-            lose_life()
-        elif red_ghost_direction[el] == 1 and board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] != 1:
-            board[red_ghost_x[el]][red_ghost_y[el]] = 0
-            board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] = -3
-            red_ghost_x[el] += 1
-            red_ghost_y[el] += 1
-        elif red_ghost_direction[el] == 1 and board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] == 1:
-            if board[red_ghost_x[el]][red_ghost_y[el] + 1] == 1:
-                red_ghost_direction[el] = 0
-                if red_ghost_y[el] + 1 != y_tiles - 1:
-                    board[red_ghost_x[el]][red_ghost_y[el] + 1] = 0
-            elif board[red_ghost_x[el] + 1][red_ghost_y[el]] == 1:
-                red_ghost_direction[el] = 2
-                if red_ghost_x[el] + 1 != x_tiles - 1:
-                    board[red_ghost_x[el] + 1][red_ghost_y[el]] = 0
-            else:
-                red_ghost_direction[el] = 3
-                if red_ghost_y[el] + 1 != y_tiles - 1 and red_ghost_x[el] + 1 != x_tiles - 1:
-                    board[red_ghost_x[el] + 1][red_ghost_y[el] + 1] = 0
-
-        if red_ghost_direction[el] == 2 and board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] == 2:
-            lose_life()
-        elif red_ghost_direction[el] == 2 and board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] != 1:
-            board[red_ghost_x[el]][red_ghost_y[el]] = 0
-            board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] = -3
-            red_ghost_x[el] -= 1
-            red_ghost_y[el] += 1
-        elif red_ghost_direction[el] == 2 and board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] == 1:
-            if board[red_ghost_x[el]][red_ghost_y[el] + 1] == 1:
-                red_ghost_direction[el] = 3
-                if red_ghost_y[el] + 1 != y_tiles - 1:
-                    board[red_ghost_x[el]][red_ghost_y[el] + 1] = 0
-            elif board[red_ghost_x[el] - 1][red_ghost_y[el]] == 1:
-                red_ghost_direction[el] = 1
-                if red_ghost_x[el] - 1 != 0:
-                    board[red_ghost_x[el] - 1][red_ghost_y[el]] = 0
-            else:
-                red_ghost_direction[el] = 0
-                if red_ghost_y[el] + 1 != y_tiles - 1 and red_ghost_x[el] - 1 != 0:
-                    board[red_ghost_x[el] - 1][red_ghost_y[el] + 1] = 0
-
-        if red_ghost_direction[el] == 3 and board[red_ghost_x[el] - 1][red_ghost_y[el] - 1] == 2:
-            lose_life()
-        elif red_ghost_direction[el] == 3 and board[red_ghost_x[el] - 1][red_ghost_y[el] - 1] != 1:
-            board[red_ghost_x[el]][red_ghost_y[el]] = 0
-            board[red_ghost_x[el] - 1][red_ghost_y[el] - 1] = -3
-            red_ghost_x[el] -= 1
-            red_ghost_y[el] -= 1
-        elif red_ghost_direction[el] == 3 and board[red_ghost_x[el] - 1][red_ghost_y[el] - 1] == 1:
-            if board[red_ghost_x[el]][red_ghost_y[el] - 1] == 1:
-                red_ghost_direction[el] = 2
-                if red_ghost_y[el] - 1 != 0:
-                    board[red_ghost_x[el]][red_ghost_y[el] - 1] = 0
-            elif board[red_ghost_x[el] - 1][red_ghost_y[el]] == 1:
-                red_ghost_direction[el] = 0
-                if red_ghost_x[el] - 1 != 0:
-                    board[red_ghost_x[el] - 1][red_ghost_y[el]] = 0
-            else:
-                red_ghost_direction[el] = 1
-                if red_ghost_y[el] - 1 != 0 and red_ghost_x[el] - 1 != 0:
-                    board[red_ghost_x[el] - 1][red_ghost_y[el] - 1] = 0
+            if red_ghost_direction[el] == 3 and board[red_ghost_x[el] - 1][red_ghost_y[el] - 1] == 2:
+                lose_life()
+            elif red_ghost_direction[el] == 3 and board[red_ghost_x[el] - 1][red_ghost_y[el] - 1] != 1:
+                board[red_ghost_x[el]][red_ghost_y[el]] = 0
+                board[red_ghost_x[el] - 1][red_ghost_y[el] - 1] = -3
+                red_ghost_x[el] -= 1
+                red_ghost_y[el] -= 1
+            elif red_ghost_direction[el] == 3 and board[red_ghost_x[el] - 1][red_ghost_y[el] - 1] == 1:
+                if board[red_ghost_x[el]][red_ghost_y[el] - 1] == 1:
+                    red_ghost_direction[el] = 2
+                    if red_ghost_y[el] - 1 != 0:
+                        board[red_ghost_x[el]][red_ghost_y[el] - 1] = 0
+                elif board[red_ghost_x[el] - 1][red_ghost_y[el]] == 1:
+                    red_ghost_direction[el] = 0
+                    if red_ghost_x[el] - 1 != 0:
+                        board[red_ghost_x[el] - 1][red_ghost_y[el]] = 0
+                else:
+                    red_ghost_direction[el] = 1
+                    if red_ghost_y[el] - 1 != 0 and red_ghost_x[el] - 1 != 0:
+                        board[red_ghost_x[el] - 1][red_ghost_y[el] - 1] = 0
 
 
-def move_when_keys():
+def move_when_keys(stop):
     global player_x
     global player_y
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_RIGHT] or keys[pygame.K_LEFT] or keys[pygame.K_UP] or keys[pygame.K_DOWN]:
-        player_x, player_y = move_player(player_x, player_y)
+    if not stop:
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_RIGHT] or keys[pygame.K_LEFT] or keys[pygame.K_UP] or keys[pygame.K_DOWN]:
+            player_x, player_y = move_player(player_x, player_y)
 
 
 def display_text():
@@ -528,17 +535,40 @@ def display_text():
     text_lives_rect = text_lives.get_rect()
     text_lives_rect.center = (100, 50)
 
-    text_points = font.render('Points: ' + str(point_count), True, (255, 255, 0))
-    text_points_rect = text_lives.get_rect()
-    text_points_rect.center = (550, 50)
+    # text_points = font.render('Points: ' + str(point_count), True, (255, 255, 0))
+    # text_points_rect = text_lives.get_rect()
+    # text_points_rect.center = (550, 50)
 
     text_fill = font.render('Filled: ' + str(fill_percent) + "%", True, (255, 255, 0))
     text_fill_rect = text_lives.get_rect()
     text_fill_rect.center = (750, 50)
 
     screen.blit(text_lives, text_lives_rect)
-    screen.blit(text_points, text_points_rect)
+    # screen.blit(text_points, text_points_rect)
     screen.blit(text_fill, text_fill_rect)
+
+
+def eat_ghost():
+    global pink_ghost_amount
+    global pink_ghost_direction
+    global pink_ghost_y
+    global pink_ghost_x
+    for i in range(pink_ghost_amount):
+        for j in range(orange_ghost_amount):
+            if pink_ghost_y[i] == orange_ghost_y[j] and pink_ghost_x[i] == orange_ghost_x[j]:
+                pink_ghost_x.pop(i)
+                pink_ghost_y.pop(i)
+                pink_ghost_direction.pop(i)
+                pink_ghost_amount = pink_ghost_amount - 1
+                return
+
+        for j in range(red_ghost_amount):
+            if pink_ghost_y[i] == red_ghost_y[j] and pink_ghost_x[i] == red_ghost_x[j]:
+                pink_ghost_x.pop(i)
+                pink_ghost_y.pop(i)
+                pink_ghost_direction.pop(i)
+                pink_ghost_amount = pink_ghost_amount - 1
+                return
 
 
 def main():
@@ -551,10 +581,12 @@ def main():
     global counter
     global direction
     refreshed = False
+    stop = False
     run = True
     draw_orange(orange_ghost_amount)
     draw_red(red_ghost_amount)
     draw_pink(pink_ghost_amount)
+    lock = threading.Lock()
     while run:
         timer.tick(fps)
         if counter < 3:
@@ -562,12 +594,12 @@ def main():
         else:
             counter = 0
         screen.fill('black')
-        draw_board()
+        t_board = threading.Thread(target=draw_board, args=(lock,)).start()
         display_text()
         draw_player()
-        t_pink = threading.Thread(target=move_pink).start()
-        t_orange = threading.Thread(target=move_orange).start()
-        t_red = threading.Thread(target=move_red).start()
+        t_pink = threading.Thread(target=move_pink(stop)).start()
+        t_orange = threading.Thread(target=move_orange(stop)).start()
+        t_red = threading.Thread(target=move_red(stop)).start()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -585,6 +617,7 @@ def main():
                     direction = 3
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and game_over:
+                    stop = False
                     game_over = False
                     player_y = 100
                     player_x = 0.5 * width
@@ -593,7 +626,7 @@ def main():
                     restart_board()
                     fill_percent = 0
 
-        t2 = threading.Thread(target=move_when_keys()).start()
+        t2 = threading.Thread(target=move_when_keys(stop)).start()
 
         if not refreshed:
             fill_path()
@@ -605,9 +638,11 @@ def main():
             if winner:
                 game_over_text = font.render('You won! Press space to restart', True, 'white')
                 screen.blit(game_over_text, (200, 300))
+                stop = True
             else:
                 game_over_text = font.render('Game over! Press space to restart', True, 'white')
                 screen.blit(game_over_text, (200, 300))
+                stop = True
 
         pygame.display.flip()
 
