@@ -18,6 +18,8 @@ width = (WIDTH // x_tiles)
 color = (0, 0, 255)
 board = copy.deepcopy(board)
 
+a = []
+
 # Gameplay
 lives = 3
 point_count = 0
