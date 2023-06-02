@@ -80,6 +80,11 @@ red_ghost = pygame.transform.scale(
 
 
 def draw_board(lock):
+    """
+    Draws board on the screen based on array from board.py
+    Args:
+        lock: critical section
+    """
     for row in range(len(board)):
         for col in range(len(board[row])):
             if board[row][col] == 1:
@@ -118,6 +123,9 @@ def draw_board(lock):
 
 
 def draw_player():
+    """
+    Draws player on a board
+    """
     if direction == 0:
         screen.blit(player_images[counter // 1], (player_x, player_y))
     elif direction == 1:
@@ -138,6 +146,15 @@ def draw_player():
 
 
 def move_player(playerx, playery):
+    """
+    Changes player position
+    Args:
+        playerx: player position on x-axis
+        playery: player position on y-axis
+    Returns:
+        playerx, playery: updated player position
+
+    """
     if direction == 0:
         playerx += width
         if playerx > WIDTH - width:
@@ -159,6 +176,9 @@ def move_player(playerx, playery):
 
 
 def fill_path():
+    """
+    Fills space taken by a player and updates board
+    """
     global fill_percent
     if board[int(player_x / width)][int((player_y - 5 * height) / height)] == 0:
         board[int(player_x / width)][int((player_y - 5 * height) / height)] = 2
@@ -183,6 +203,9 @@ def fill_path():
 
 
 def two_to_one():
+    """
+    Changes temporary filled squares to filled squares (2 -> 1)
+    """
     for row in range(x_tiles):
         for col in range(y_tiles):
             if board[row][col] == 2:
@@ -190,6 +213,9 @@ def two_to_one():
 
 
 def fill_counter():
+    """
+    Updates % of board taken by a player
+    """
     count = 0
     for row in range(x_tiles):
         for col in range(y_tiles):
@@ -199,6 +225,11 @@ def fill_counter():
 
 
 def is_win(filling):
+    """
+    Checks for win condition
+    Args:
+        filling: % of board taken by a player
+    """
     global game_over
     global winner
     if filling >= 80:
@@ -207,6 +238,9 @@ def is_win(filling):
 
 
 def restart_board():
+    """
+    Restarts board, removes filled squares and 'resurrects' eaten pink ghosts
+    """
     global eaten_pink_ghosts
     global pink_ghost_amount
     for row in range(x_tiles - 1):
@@ -222,6 +256,11 @@ def restart_board():
 
 
 def draw_pink(amount):
+    """
+    Draws pink ghosts on the board
+    Args:
+        amount: amount of pink ghosts
+    """
     for x in range(amount):
         row = 0
         col = 0
@@ -235,6 +274,11 @@ def draw_pink(amount):
 
 
 def draw_orange(amount):
+    """
+    Draws orange ghosts on the board
+    Args:
+        amount: amount of orange ghosts
+    """
     global orange_ghost_direction
     for x in range(amount):
         row = 0
@@ -267,6 +311,11 @@ def draw_orange(amount):
 
 
 def draw_red(amount):
+    """
+    Draws red ghosts on the board
+    Args:
+        amount: amount of red ghosts
+    """
     for x in range(amount):
         row = 0
         col = 0
@@ -280,6 +329,9 @@ def draw_red(amount):
 
 
 def lose_life():
+    """
+    Decreases lives and checks if game is over
+    """
     global lives
     global game_over
     global player_y
@@ -297,6 +349,11 @@ def lose_life():
 
 
 def move_pink(stop):
+    """
+    Moves pink ghosts around the board
+    Args:
+        stop: true | ghosts stop moving
+    """
     if not stop:
         for el in range(pink_ghost_amount):
             if (
@@ -433,6 +490,11 @@ def move_pink(stop):
 
 
 def move_orange(stop):
+    """
+    Moves orange ghosts around the board
+    Args:
+        stop: true | ghosts stop moving
+    """
     if not stop:
         for el in range(orange_ghost_amount):
             if (
@@ -553,6 +615,11 @@ def move_orange(stop):
 
 
 def move_red(stop):
+    """
+    Moves red ghosts around the board
+    Args:
+        stop: true | ghosts stop moving
+    """
     if not stop:
         for el in range(red_ghost_amount):
             if (
@@ -716,6 +783,11 @@ def move_red(stop):
 
 
 def move_when_keys(stop):
+    """
+    Moves player based on keyboard input
+    Args:
+        stop: true | player stops moving
+    """
     global player_x
     global player_y
     if not stop:
@@ -730,6 +802,9 @@ def move_when_keys(stop):
 
 
 def display_text():
+    """
+    Displays text on the screen
+    """
     global lives
     global point_count
     global fill_percent
@@ -746,6 +821,9 @@ def display_text():
 
 
 def eat_ghost():
+    """
+    Handling of critical section, removing pink ghosts if conditions are met
+    """
     global pink_ghost_amount
     global pink_ghost_direction
     global pink_ghost_y
