@@ -162,7 +162,6 @@ def fill_path():
     global fill_percent
     if board[int(player_x / width)][int((player_y - 5 * height) / height)] == 0:
         board[int(player_x / width)][int((player_y - 5 * height) / height)] = 2
-        a = 2+2
     np_array = np.array(board)
     np_structure = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
     labeled_array, num_features = label(np_array <= 0, structure=np_structure)
