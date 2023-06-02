@@ -20,4 +20,23 @@ Orange ghosts travel close to safe zone boarders.
 Red ghosts destroy save zone as they bounce off the walls.  
 </p>
 
+<!-- TECHNOLOGIES -->
+## Technologies
+To create our game we used Python 3.9. 
 
+| Library             | Usage                     |
+|---------------------|---------------------------|
+| pygame              | Pygame is a set of Python modules designed for writing video games. Pygame adds functionality on top of the excellent SDL library. This allows us to create fully featured games and   multimedia programs in the python language. |
+| threading           | Threading is a Python module that allows us to have different parts of our program run concurrently.|
+| numpy               | Numpy simplifies working with array what allows us to easily manipulate board of our game |
+| scipy               | Scipy in our project is used for labeling arrays |
+
+<!-- AUTHORS -->
+## Authors
+
+Project: [https://github.com/Julia1204/SO2/blob/main](https://github.com/Julia1204/SO2/blob/main)
+
+| Author             | Email                     |
+|--------------------|---------------------------|
+| Julia Gościniak    | 259164@student.pwr.edu.pl |
+| Hubert Kustosz     | 259119@student.pwr.edu.pl |
